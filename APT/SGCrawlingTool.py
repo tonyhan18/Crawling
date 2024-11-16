@@ -12,30 +12,68 @@ import datetime
 # pip install openpyxl
 from openpyxl import Workbook
 
+# 페이지 접근을 자주 막는 것에 대해 selenium을 이용해서 해결 시도
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+
 # ENV Settings
 
+# request 방식으로 할 경우
 headers = {'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36'}
+
+# selenium 방식 호출
+#driver_path = "./APT/chromedriver"
+#path = 'chromedriver.exe'
+chrome_options = Options()
+chrome_options.add_argument("--headless")  # 헤드리스 모드
+chrome_options.add_argument("--disable-gpu")  # GPU 비활성화 (선택 사항)
+chrome_options.add_argument("window-size=1920x1080")  # 창 크기 설정
+chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36") # 봇 감지 피하기
+#service = Service(driver_path)
+
+driver = webdriver.Chrome(options=chrome_options)
+
+# 엑셀 저장을 위한 도구
 wb = Workbook()
 
+# 표현하고자 하는 칼럼
+table_column_list = {"rletTpNm":"상가 구분", "tradTpNm":"거래 유형","prc":"가격","spc1":"계약면적(평)","spc2":"전용면적(m2)","hanPrc":"보증금","rentPrc":"월세", "rate":"수익률"}
+
+# 서비스 제한이 걸렸을때의 해결책
+class CustomException(Exception):
+    pass
 
 def btnsearchcmd():
     maximum_count = 1
     keyword = entry_search.get()
     if(keyword == ""):
         keyword = "구로구 구로동"
-
-    url = "https://m.land.naver.com/search/result/{}".format(keyword)
-    res = requests.get(url, headers=headers)
-    # res.raise_for_status()
     
-    soup = (str)(BeautifulSoup(res.text,"lxml"))
+    # try :
+            
+    # finally:
+    #          
+    url = "https://m.land.naver.com/search/result/{}".format(keyword)
+    
+    try:    
+        res = requests.get(url, headers=headers)
+        res.raise_for_status()    
+        soup = (str)(BeautifulSoup(res.text,"lxml"))
+        
+        if(res.status_code != 200):
+            raise CustomException 
+    except CustomException as e :
+        driver.implicitly_wait(5)
+        driver.get(url)
+        print(driver.page_source)
+        driver.quit()
 
-    # TODO : 만약 사용자가 이상한 값을 넣었다면 어떻게 할 것인가의 해결책    
+    # DONE : 만약 사용자가 이상한 값을 넣었다면 어떻게 할 것인가의 해결책
     # TODO : 자주 서비스가 제한된다.
-    if(res.status_code != 200):
-        print(res.status_code, " 서비스 이용이 제한되었습니다.")
-        return
-
+    
+    
     #  filter: {
     #             lat: '37.550985', : latitude 위도
     #             lon: '126.849534', : longitude 경도
@@ -53,7 +91,6 @@ def btnsearchcmd():
     cortarNo = value.split("cortarNo:")[1].split(",")[0]
     rletTpCds = value.split("rletTpCds:")[1].split(",")[0]
     tradTpCds = value.split("tradTpCds:")[1].split(",")[0]
-    
     '''
     _rletTpCd = [{tagCd: 'APT', uiTagNm: '아파트'}, {tagCd: 'OPST', uiTagNm: '오피스텔'}, {tagCd: 'VL', uiTagNm: '빌라'},
                 {tagCd: 'ABYG', uiTagNm: '아파트분양권'}, {tagCd: 'OBYG', uiTagNm: '오피스텔분양권'}, {tagCd: 'JGC', uiTagNm: '재건축'},
@@ -63,6 +100,7 @@ def btnsearchcmd():
                 {tagCd: 'GJCG', uiTagNm: '공장/창고'}, {tagCd: 'GM', uiTagNm: '건물'}, {tagCd: 'TJ', uiTagNm: '토지'},
                 {tagCd: 'APTHGJ', uiTagNm: '지식산업센터'}];
     '''
+    # TODO : 동적 할당 기능 필요
     rletTpCds = "SG"
 
     # A1=매매/B1=전세/B2=월세/B3=단기임대/*=전체
@@ -122,8 +160,8 @@ def btnsearchcmd():
                 rletTpNm = rs['rletTpNm']    # 상가구분
                 tradTpNm = rs['tradTpNm']    # 매매/전세/월세 구분
                 prc = rs['prc']              # 가격
-                spc1 = float(rs['spc1'])*0.3025    # 계약면적(m2) -> 평으로 계산 : * 0.3025
-                spc2 = float(rs['spc2'])*0.3025    # 전용면적(m2) -> 평으로 계산 : * 0.3025
+                spc1 = round(float(rs['spc1'])*0.3025,2)    # 계약면적(m2) -> 평으로 계산 : * 0.3025
+                spc2 = round(float(rs['spc2'])*0.3025,2)    # 전용면적(m2) -> 평으로 계산 : * 0.3025
                 hanPrc = rs['hanPrc']        # 보증금                
                 rentPrc = rs['rentPrc']      # 월세
                 flrInfo = rs['flrInfo']      # 층수(물건층/전체층)
@@ -163,8 +201,16 @@ def focus_out(entry_search, search_keyword):
 def btnexportexcel():
     now = datetime.datetime.now()
     nowDatetime = now.strftime('%Y%m%d_%H%M%S')
-    keyword = tk.entry.get()
+    keyword = entry_search.get()
+    sheet = wb.active
 
+    column_title = list(table_column_list.values())
+    sheet.append(column_title)
+    
+    for row_id in tableview.get_children():
+        row = tableview.item(row_id)["values"]
+        sheet.append(row)
+        
     file_name = keyword+"_"+nowDatetime+".xlsx"
     wb.save("./"+file_name)
     
@@ -276,37 +322,20 @@ list_frame.pack(side="top", fill="both")
 scrollbar = tk.Scrollbar(list_frame)
 scrollbar.pack(side="right", fill = "y")
 
-tableview = tkinter.ttk.Treeview(list_frame, columns=["rletTpNm","tradTpNm","prc","spc1","spc2","hanPrc","rentPrc", "rate"],\
-                     displaycolumns=["rletTpNm","tradTpNm","prc","spc1","spc2","hanPrc","rentPrc", "rate"], height=20, yscrollcommand=scrollbar.set)
+# TODO : 칼럼항목을 조절할 수 있음
+keys_view = list(table_column_list.keys())
+
+tableview = tkinter.ttk.Treeview(list_frame, columns=keys_view,\
+                     displaycolumns=keys_view, height=20, yscrollcommand=scrollbar.set)
 
 # 이렇게 안 하면 #0 컬럼이 생겨버림;;
 tableview.column("#0",width=0,stretch=tk.NO)
 tableview.pack(fill="both")
 
 # 각 컬럼 설정. 컬럼 이름, 컬럼 넓이, 정렬 등
-tableview.column("rletTpNm", width=80,anchor="center")
-tableview.heading("rletTpNm", text="상가 구분", anchor="center")
-
-tableview.column("tradTpNm", width=80, anchor="center")
-tableview.heading("tradTpNm", text="거래 유형", anchor="center")
-
-tableview.column("prc", width=80, anchor="center")
-tableview.heading("prc", text="가격", anchor="center")
-
-tableview.column("spc1", width=80, anchor="center")
-tableview.heading("spc1", text="계약면적(m2)", anchor="center")
-
-tableview.column("spc2", width=80, anchor="center")
-tableview.heading("spc2", text="전용면적(m2)", anchor="center")
-
-tableview.column("hanPrc", width=80, anchor="center")
-tableview.heading("hanPrc", text="보증금", anchor="center")
-
-tableview.column("rentPrc", width=80, anchor="center")
-tableview.heading("rentPrc", text="월세", anchor="center")
-
-tableview.column("rate", width=80, anchor="center")
-tableview.heading("rate", text="수익률", anchor="center")
+for key, value in table_column_list.items():
+    tableview.column(key, width=80,anchor="center")
+    tableview.heading(key, text=value, anchor="center")
 
 #스크롤바를 움직일 때 표도 같이 이동할 수 있도록 적용
 scrollbar.config(command=tableview.yview)
