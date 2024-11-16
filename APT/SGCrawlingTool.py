@@ -1,4 +1,5 @@
 # 출처: https://cocoabba.tistory.com/58 [새로운 시작~!:티스토리]
+# 혹시나 서비스 제한이 뜰 경우 "Https 유니콘"을 활성화 시킬것
 import requests
 from bs4 import BeautifulSoup
 import json, math
@@ -7,25 +8,32 @@ import tkinter as tk
 import tkinter.ttk
 import tkinter.messagebox as msgbox
 
-# ENV Settings
-headers = {'User-Agent' : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.79 Safari/537.36'}
+import datetime
+# pip install openpyxl
+from openpyxl import Workbook
 
-# https://cocoabba.tistory.com/59
+# ENV Settings
+
+headers = {'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36'}
+wb = Workbook()
+
 
 def btnsearchcmd():
-    maximum_count = 0
+    maximum_count = 1
     keyword = entry_search.get()
     if(keyword == ""):
         keyword = "구로구 구로동"
 
     url = "https://m.land.naver.com/search/result/{}".format(keyword)
     res = requests.get(url, headers=headers)
-    res.raise_for_status()
+    # res.raise_for_status()
     
     soup = (str)(BeautifulSoup(res.text,"lxml"))
 
     # TODO : 만약 사용자가 이상한 값을 넣었다면 어떻게 할 것인가의 해결책    
-    if(soup.find("filter: {") == -1):
+    # TODO : 자주 서비스가 제한된다.
+    if(res.status_code != 200):
+        print(res.status_code, " 서비스 이용이 제한되었습니다.")
         return
 
     #  filter: {
@@ -67,7 +75,10 @@ def btnsearchcmd():
         .format(cortarNo, rletTpCds, tradTpCds, z, lat, lon)
 
     res_complx = requests.get(remaked_URL, headers=headers)
+    #json_str = (str)(BeautifulSoup(res_complx.text,"lxml"))
+    # TODO : 특정 article은 에러를 발생시킨다
     json_str = json.loads(json.dumps(res_complx.json()))
+
 
     article_list = json_str['data']['ARTICLE']
 
@@ -76,7 +87,10 @@ def btnsearchcmd():
     https://m.land.naver.com/cluster/ajax/articleList?itemId=2120322202&mapKey=&lgeo=2120322202&showR0=&rletTpCd=SG&tradTpCd=A1&z=14&lat=37.4937&lon=126.8823&totCnt=25&cortarNo=1153010200&sort=rank&page=1
     '''
 
+    j = 0
     for article in article_list:
+        print(j)
+        j += 1
         lgeo = article['lgeo']
         count = article['count']
         z2 = article['z']
@@ -94,10 +108,16 @@ def btnsearchcmd():
         
             # json.dumps()는 Python 객체를 JSON 문자열로 변환합니다.
             #이 경우, res2.json()으로 얻은 딕셔너리를 JSON 문자열로 변환합니다.
-            json_str = json.loads(json.dumps(details_res.json()))
+            try:
+                json_str = json.loads(json.dumps(details_res.json()))
+            except Exception as e:
+                print(article)
+                print(e)
             realestates = json_str['body']
+            i =0
             
-            for rs in realestates:
+            for i in range(maximum_count):
+                rs = realestates[i]
                 atclNo = rs['atclNo']        # 물건번호
                 rletTpNm = rs['rletTpNm']    # 상가구분
                 tradTpNm = rs['tradTpNm']    # 매매/전세/월세 구분
@@ -141,7 +161,14 @@ def focus_out(entry_search, search_keyword):
         entry_search.config(state="disabled")
         
 def btnexportexcel():
-    return
+    now = datetime.datetime.now()
+    nowDatetime = now.strftime('%Y%m%d_%H%M%S')
+    keyword = tk.entry.get()
+
+    file_name = keyword+"_"+nowDatetime+".xlsx"
+    wb.save("./"+file_name)
+    
+    msgbox.showinfo("파일 저장", "'"+file_name+"' 파일로 정상적으로 추출되었습니다.")
 
 def btnexit():
     exit()
@@ -158,7 +185,7 @@ search_frame.pack(expand=True, pady=10,fill="both")
 #검색 입력 창
 entry_search = tk.Entry(search_frame)
 entry_search.pack(side="left",fill="both", expand=True)
-entry_search.insert(0, "검색할 지역명 검색 (예: 구로구 구로동)")
+entry_search.insert(0, "구로구 구로동")
 entry_search.configure(state='disabled')
 
 #entry에 클릭했을 때 on_forcus_in 함수 실행 
