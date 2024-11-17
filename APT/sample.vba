@@ -108,8 +108,7 @@ v = ParseJSON(strResult, "lgeo,lat,lon,count")
 ' Set htmlResult = Nothing
 ' Set htmlResult = GetHttp(URL)
 '                strResult = htmlResult.body.innerHTML
-'                vReturn = ParseJSON(strResult, "hscpNm,hscpNo,scpTypeCd,hscpTypeNm,totDongCnt,totHsehCnt,genHsehCnt,useAprvYmd,repImgUrl,dealCnt,leaseCnt,rentCnt," & _
-                                             "strmRentCnt,totalAtclCnt,minSpc,maxSpc,dealPrcMin,dealPrcMax,leasePrcMin,leasePrcMax,isalePrcMin,isalePrcMax,isaleNotifSeq,isaleScheLabel,isaleScheLabelPre", city, "<em class="txt_unit">,</em>")
+'                vReturn = ParseJSON(strResult, "hscpNm,hscpNo,scpTypeCd,hscpTypeNm,totDongCnt,totHsehCnt,genHsehCnt,useAprvYmd,repImgUrl,dealCnt,leaseCnt,rentCnt," & _                                             "strmRentCnt,totalAtclCnt,minSpc,maxSpc,dealPrcMin,dealPrcMax,leasePrcMin,leasePrcMax,isalePrcMin,isalePrcMax,isaleNotifSeq,isaleScheLabel,isaleScheLabelPre", city, "<em class="txt_unit">,</em>")
  
 Dim i As Long: Dim iPage As Long: Dim j As Long
 Dim vReturn As Variant
