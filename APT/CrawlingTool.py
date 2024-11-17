@@ -18,7 +18,12 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 
+# UIUX
+import CrawlingToolUIUX as UIUX
+
 # ENV Settings
+
+
 
 # request 방식으로 할 경우
 headers = {'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36'}
@@ -47,6 +52,9 @@ class CustomException(Exception):
 
 def btnsearchcmd():
     maximum_count = 1
+    
+    # TODO : 좀 더 나이스하게 이 부분을 바꾸는 방법 필요
+    # DONE : 만약 사용자가 이상한 값을 넣었다면 어떻게 할 것인가의 해결책
     keyword = entry_search.get()
     if(keyword == ""):
         keyword = "구로구 구로동"
@@ -64,33 +72,45 @@ def btnsearchcmd():
         
         if(res.status_code != 200):
             raise CustomException 
+        
+        value = soup.split("filter: {")[1].split("}")[0].replace(" ","").replace("'","")
+        lat = value.split("lat:")[1].split(",")[0]
+        lon = value.split("lon:")[1].split(",")[0]
+        z = value.split("z:")[1].split(",")[0]
+        cortarNo = value.split("cortarNo:")[1].split(",")[0]
+        rletTpCds = value.split("rletTpCds:")[1].split(",")[0]
+        tradTpCds = value.split("tradTpCds:")[1].split(",")[0]
+        
     except CustomException as e :
+        # TODO : 자주 서비스가 제한된다.
         driver.implicitly_wait(5)
         driver.get(url)
         print(driver.page_source)
         driver.quit()
+        
+        #  filter: {
+        #             lat: '37.550985', : latitude 위도
+        #             lon: '126.849534', : longitude 경도
+        #             z: '12',
+        #             cortarNo: '1150000000',
+        #             cortarNm: '강서구',
+        #             rletTpCds: '*',
+        #             tradTpCds: 'A1:B1:B2'
+        #         },
+        
+        value = soup.split("filter: {")[1].split("}")[0].replace(" ","").replace("'","")
+        lat = '37.4937'
+        lon = '126.8823'
+        z = '14'
+        cortarNo = value.split("cortarNo:")[1].split(",")[0]
+        rletTpCds = value.split("rletTpCds:")[1].split(",")[0]
+        tradTpCds = value.split("tradTpCds:")[1].split(",")[0]
 
-    # DONE : 만약 사용자가 이상한 값을 넣었다면 어떻게 할 것인가의 해결책
-    # TODO : 자주 서비스가 제한된다.
     
     
-    #  filter: {
-    #             lat: '37.550985', : latitude 위도
-    #             lon: '126.849534', : longitude 경도
-    #             z: '12',
-    #             cortarNo: '1150000000',
-    #             cortarNm: '강서구',
-    #             rletTpCds: '*',
-    #             tradTpCds: 'A1:B1:B2'
-    #         },
-    value = soup.split("filter: {")[1].split("}")[0].replace(" ","").replace("'","")
+    
 
-    lat = value.split("lat:")[1].split(",")[0]
-    lon = value.split("lon:")[1].split(",")[0]
-    z = value.split("z:")[1].split(",")[0]
-    cortarNo = value.split("cortarNo:")[1].split(",")[0]
-    rletTpCds = value.split("rletTpCds:")[1].split(",")[0]
-    tradTpCds = value.split("tradTpCds:")[1].split(",")[0]
+
     '''
     _rletTpCd = [{tagCd: 'APT', uiTagNm: '아파트'}, {tagCd: 'OPST', uiTagNm: '오피스텔'}, {tagCd: 'VL', uiTagNm: '빌라'},
                 {tagCd: 'ABYG', uiTagNm: '아파트분양권'}, {tagCd: 'OBYG', uiTagNm: '오피스텔분양권'}, {tagCd: 'JGC', uiTagNm: '재건축'},
@@ -103,7 +123,7 @@ def btnsearchcmd():
     # TODO : 동적 할당 기능 필요
     rletTpCds = "SG"
 
-    # A1=매매/B1=전세/B2=월세/B3=단기임대/*=전체
+    # TODO : A1=매매/B1=전세/B2=월세/B3=단기임대/*=전체
     tradTpCds = "A1"
     
     ###### New ARTICLE DATA
@@ -116,6 +136,7 @@ def btnsearchcmd():
     #json_str = (str)(BeautifulSoup(res_complx.text,"lxml"))
     # TODO : 특정 article은 에러를 발생시킨다
     json_str = json.loads(json.dumps(res_complx.json()))
+    soup = (str)(BeautifulSoup(res_complx.text,"lxml"))
 
 
     article_list = json_str['data']['ARTICLE']
@@ -148,7 +169,9 @@ def btnsearchcmd():
             #이 경우, res2.json()으로 얻은 딕셔너리를 JSON 문자열로 변환합니다.
             try:
                 json_str = json.loads(json.dumps(details_res.json()))
+                soup = (str)(BeautifulSoup(details_res.text,"lxml"))
             except Exception as e:
+                soup = (str)(BeautifulSoup(details_res.text,"lxml"))
                 print(article)
                 print(e)
             realestates = json_str['body']
@@ -218,6 +241,8 @@ def btnexportexcel():
 
 def btnexit():
     exit()
+
+
 
 # This probably means that Tcl wasn't installed properly
 # https://blog.naver.com/tjdus25/221652293934
@@ -326,7 +351,7 @@ scrollbar.pack(side="right", fill = "y")
 keys_view = list(table_column_list.keys())
 
 tableview = tkinter.ttk.Treeview(list_frame, columns=keys_view,\
-                     displaycolumns=keys_view, height=20, yscrollcommand=scrollbar.set)
+                    displaycolumns=keys_view, height=20, yscrollcommand=scrollbar.set)
 
 # 이렇게 안 하면 #0 컬럼이 생겨버림;;
 tableview.column("#0",width=0,stretch=tk.NO)
@@ -341,3 +366,10 @@ for key, value in table_column_list.items():
 scrollbar.config(command=tableview.yview)
 
 root.mainloop()
+
+    
+# 이런식으로 명명하면 다른 파일에서 임포트되었을 때 실행되지 않도록한다.
+# def main():
+    
+# if __name__ == "__main__":
+#     main()
