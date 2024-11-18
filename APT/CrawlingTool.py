@@ -231,9 +231,9 @@ def btnsearchcmd():
                 prc = rs['prc']                # 가격
                 tradTpNm = rs['tradTpNm']      # 매매/전세/월세 구분
                 flrInfo = rs['flrInfo']        # 층수(물건층/전체층)
-                spc1 = rs['spc1']    # 계약면적(m2) -> 평으로 계산 : * 0.3025
-                spc1P = round(float(rs['spc1'])*0.3025,2)
-                spc2 = rs['spc2']    # 전용면적(m2) -> 평으로 계산 : * 0.3025
+                spc1 = rs['spc1']    # 계약면적(m2)
+                spc1P = round(float(rs['spc1'])*0.3025,2)   # 계약면적(m2) -> 평으로 계산 : * 0.3025
+                spc2 = rs['spc2']    # 전용면적(m2)
                 spc2P = round(float(rs['spc2'])*0.3025,2)    # 전용면적(m2) -> 평으로 계산 : * 0.3025
                 atclFetrDesc = rs['atclFetrDesc'] if "atclFetrDesc" in rs else "" 
                 detaild_information = "https://m.land.naver.com/article/info/{}".format(atclNo)
@@ -259,7 +259,7 @@ def btnsearchcmd():
                     previousMonthlyRent = res_detail_info_json['result']['priceInfo']['previousMonthlyRent']
                     buildingUse = res_detail_info_json['result']['detailInfo']['articleDetailInfo']['buildingUse']
                     curBisType = res_detail_info_json['result']['detailInfo']['spaceInfo']['currentBusinessType']
-                    rltrPh = re.search(r"010.{10}", desc).group() if "010" in desc else ""
+                    rltrPh = re.search(r"010.{10}", desc).group() if "010" in desc else "" #공인중개사 번호 뽑아내기
                     # 실재로 6% 넘는지 빠르게 계산하기 위해서는 (월세 * 20)이 (매매가 - 보증금) 보다 크면 됨
                     rateOfReturn = round((float(previousMonthlyRent) / (float(price) - float(previousDeposit))) * 1200, 2)
                     #print("월세 수익률 : " + previousMonthlyRent + " " + previousDeposit + " " + rateOfReturn)
@@ -269,10 +269,13 @@ def btnsearchcmd():
                     print(e)
                     
                 # 평단가
-                equilibriumPrice = prc / spc2P
+                equilibriumPrice = round(prc / spc2P,2)            
                 
                 # 표에 삽입될 데이터
                 # TODO : 지역명 넣는 방법 필요한
+                # TODO : 층별로 데이터를 나누어서 받아오게 수정
+                if (curBisType is None and previousMonthlyRent == 0):
+                    continue
                 tablelist = [
                     str(atclNo), # 매물번호
                     str(atclCfmYmd), # 물건등록일자
@@ -293,7 +296,7 @@ def btnsearchcmd():
                     str(regionName), #소재지
                     str(direction), #방향
                     str(buildingUse), #추천업종
-                    str(("Y" if "주차" in tagList else "N")), # 주차가능
+                    str(("Y" if any("주차" in tag for tag in tagList) else "N")), # 주차가능
                     str(flrInfo).split('/')[1], #전체층
                     str(rltrNm), #중개사
                     str(rltrPh), #중개사전화
