@@ -21,9 +21,9 @@ from selenium.webdriver.chrome.service import Service
 # UIUX
 import CrawlingToolUIUX as UIUX
 
-# ENV Settings
-
-
+'''
+ENV Settings
+'''
 
 # request 방식으로 할 경우
 headers = {'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36'}
