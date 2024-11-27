@@ -84,8 +84,7 @@ class CustomException(Exception):
     pass
 
 def btnsearchcmd():
-    maximum_count = 1
-    
+    btn_search.invoke()
     # TODO : 좀 더 나이스하게 이 부분을 바꾸는 방법 필요
     # DONE : 만약 사용자가 이상한 값을 넣었다면 어떻게 할 것인가의 해결책
     keyword = entry_search.get()
@@ -112,8 +111,8 @@ def btnsearchcmd():
         lon = value.split("lon:")[1].split(",")[0]
         z = value.split("z:")[1].split(",")[0]
         cortarNo = value.split("cortarNo:")[1].split(",")[0]
-        rletTpCds = value.split("rletTpCds:")[1].split(",")[0]
-        tradTpCds = value.split("tradTpCds:")[1].split(",")[0]
+        #rletTpCds = value.split("rletTpCds:")[1].split(",")[0]
+        #tradTpCds = value.split("tradTpCds:")[1].split(",")[0]
         sel_prc_rng = list(price_ranges[selected.get()].split('-'))
         dprcMin = sel_prc_rng[0]
         dprcMax = sel_prc_rng[1]
@@ -140,8 +139,8 @@ def btnsearchcmd():
         lon = '126.8823'
         z = '14'
         cortarNo = value.split("cortarNo:")[1].split(",")[0]
-        rletTpCds = value.split("rletTpCds:")[1].split(",")[0]
-        tradTpCds = value.split("tradTpCds:")[1].split(",")[0]
+        #rletTpCds = value.split("rletTpCds:")[1].split(",")[0]
+        #tradTpCds = value.split("tradTpCds:")[1].split(",")[0]
 
     
     
@@ -157,16 +156,28 @@ def btnsearchcmd():
                 {tagCd: 'GJCG', uiTagNm: '공장/창고'}, {tagCd: 'GM', uiTagNm: '건물'}, {tagCd: 'TJ', uiTagNm: '토지'},
                 {tagCd: 'APTHGJ', uiTagNm: '지식산업센터'}];
     '''
-    # TODO : 동적 할당 기능 필요
-    rletTpCds = "SG"
+    # DONE : 동적 할당 기능 필요
+    rletTpCds = ""
+    if(sg.get()):
+        rletTpCds += "SG:"
+    if(sgjt.get()):
+        rletTpCds += "SGJT:"
+    if(sms.get()):
+        rletTpCds += "SMS:"
+    if(gm.get()):
+        rletTpCds += "GM:"
+    if(tj.get()):
+        rletTpCds += "TJ:"
+    if(apthgj.get()):
+        rletTpCds += "APTHGJ:"
 
-    # TODO : A1=매매/B1=전세/B2=월세/B3=단기임대/*=전체
+    # DONE : A1=매매/B1=전세/B2=월세/B3=단기임대/*=전체 := 어짜피 매매밖에 안 쓴다
     tradTpCds = "A1"
     
     ###### New ARTICLE DATA
     # 아파트는 COMPLEX로 묶어서 사용이 가능
     # 상가는 ARTICLE로 사용(묶일 이유가 없음)
-    # TODO: 상가는 COMPLEX를 사용할 수 없기 때문에 반드시 레인지 조건이 들어가야함
+    # DONE: 상가는 COMPLEX를 사용할 수 없기 때문에 반드시 레인지 조건이 들어가야함
     remakedURL = "https://m.land.naver.com/cluster/clusterList?view=atcl&cortarNo={}&rletTpCd={}&tradTpCd={}&z={}&lat={}&lon={}&dprcMin={}&dprcMax={}&addon=COMPLEX&bAddon=COMPLEX&isOnlyIsale=false"\
         .format(cortarNo, rletTpCds, tradTpCds, z, lat, lon,dprcMin,dprcMax)
     print("remakedURL : " + remakedURL)
@@ -366,6 +377,7 @@ entry_search.insert(0, "세종시 종촌동")
 entry_search.configure(state='disabled')
 
 #entry에 클릭했을 때 on_forcus_in 함수 실행 
+root.bind("<Return>", entry_search)
 x_focus_in = entry_search.bind('<Button-1>', lambda x: focus_in(entry_search)) #<Button-1> 왼쪽버튼 클릭
 x_focus_out = entry_search.bind('<FocusOut>', lambda x: focus_out(entry_search, '검색할 지역명 검색 (예: 세종시 종촌동)')) #<FocusOut> 위젯선택 풀릴 시 (다른 곳 클릭 or tab)
 
@@ -391,34 +403,30 @@ sg_condition_frame.pack(side="top", pady=10,fill="both")
 frame_middle_left = tk.LabelFrame(sg_condition_frame, text="상가 구분")
 frame_middle_left.pack(side="left", fill="both", expand=True)
 
-sg_chk1 = tk.IntVar()
-sg_chk1_box = tk.Checkbutton(frame_middle_left, text="상가", variable = sg_chk1)# 상가
-sg_chk1_box.pack(side="left")
-sg_chk1_box.select()
+sg = tk.BooleanVar()
+sg_box = tk.Checkbutton(frame_middle_left, text="상가", variable = sg)# 상가
+sg_box.pack(side="left")
+sg_box.select()
 
-sg_chk2 = tk.IntVar()
-sg_chk2_box = tk.Checkbutton(frame_middle_left, text="상가주택", variable = sg_chk2)# 상가주택
-sg_chk2_box.pack(side="left")
+sgjt = tk.BooleanVar()
+sgjt_box = tk.Checkbutton(frame_middle_left, text="상가주택", variable = sgjt)# 상가주택
+sgjt_box.pack(side="left")
 
-sg_chk3 = tk.IntVar()
-sg_chk3_box = tk.Checkbutton(frame_middle_left, text="사무실", variable = sg_chk3)# 사무실
-sg_chk3_box.pack(side="left")
+sms = tk.BooleanVar()
+sms_box = tk.Checkbutton(frame_middle_left, text="사무실", variable = sms)# 사무실
+sms_box.pack(side="left")
 
-sg_chk4 = tk.IntVar()
-sg_chk4_box = tk.Checkbutton(frame_middle_left, text="공장/창고", variable = sg_chk4)# 공장/창고
-sg_chk4_box.pack(side="left")
+gm = tk.BooleanVar()
+gm_box = tk.Checkbutton(frame_middle_left, text="건물", variable = gm)# 공장/창고
+gm_box.pack(side="left")
 
-sg_chk5 = tk.IntVar()
-sg_chk5_box = tk.Checkbutton(frame_middle_left, text="건물", variable = sg_chk5)# 건물
-sg_chk5_box.pack(side="left")
+tj = tk.BooleanVar()
+tj_box = tk.Checkbutton(frame_middle_left, text="토지", variable = tj)# 토지
+tj_box.pack(side="left")
 
-sg_chk6 = tk.IntVar()
-sg_chk6_box = tk.Checkbutton(frame_middle_left, text="토지", variable = sg_chk6)# 토지
-sg_chk6_box.pack(side="left")
-
-sg_chk7 = tk.IntVar()
-sg_chk7_box = tk.Checkbutton(frame_middle_left, text="지식산업센터", variable = sg_chk7)# 사무실
-sg_chk7_box.pack(side="left")
+apthgj = tk.BooleanVar()
+apthgj_box = tk.Checkbutton(frame_middle_left, text="지식산업센터", variable = apthgj)# 사무실
+apthgj_box.pack(side="left")
 
 
 ''' 거래 유형 프레임 '''
