@@ -84,7 +84,7 @@ class CustomException(Exception):
     pass
 
 def btnsearchcmd():
-    btn_search.invoke()
+    #btn_search.invoke()
     # TODO : 좀 더 나이스하게 이 부분을 바꾸는 방법 필요
     # DONE : 만약 사용자가 이상한 값을 넣었다면 어떻게 할 것인가의 해결책
     keyword = entry_search.get()
@@ -228,7 +228,7 @@ def btnsearchcmd():
                 print(article)
                 print(e)
             
-            # TODO : 필요한 데이터 칼럼만 따서 만들기
+            # DONE : 필요한 데이터 칼럼만 따서 만들기
             # https://m.land.naver.com/cluster/ajax/articleList?itemId=2103001011&mapKey=&lgeo=2103001011&showR0=&rletTpCd=SG&tradTpCd=A1&z=14&lat=36.5032849&lon=127.25004883&totCnt=17&cortarNo=3611011100&page=1
             # https://fin.land.naver.com/front-api/v1/article/basicInfo?articleId=2455894856&realEstateType=D02&tradeType=A1
             # 매매 : https://fin.land.naver.com/front-api/v1/article/basicInfo?articleId=2456304140&realEstateType=D02&tradeType=A1
@@ -282,6 +282,9 @@ def btnsearchcmd():
                 # 평단가
                 equilibriumPrice = round(prc / spc2P,2)            
                 
+                
+                if (atclNo == "2454818411"):
+                    break
                 # 표에 삽입될 데이터
                 # TODO : 지역명 넣는 방법 필요한
                 # TODO : 층별로 데이터를 나누어서 받아오게 수정
@@ -359,6 +362,9 @@ def btnexportexcel():
 def btnexit():
     exit()
 
+def on_enter_key(event):
+    btnsearchcmd()
+    return "break"
 
 
 # This probably means that Tcl wasn't installed properly
@@ -376,14 +382,17 @@ entry_search.pack(side="left",fill="both", expand=True)
 entry_search.insert(0, "세종시 종촌동")
 entry_search.configure(state='disabled')
 
+# DONE : Click Enter to GO
+entry_search.bind("<Return>", on_enter_key)
+
 #entry에 클릭했을 때 on_forcus_in 함수 실행 
-root.bind("<Return>", entry_search)
 x_focus_in = entry_search.bind('<Button-1>', lambda x: focus_in(entry_search)) #<Button-1> 왼쪽버튼 클릭
 x_focus_out = entry_search.bind('<FocusOut>', lambda x: focus_out(entry_search, '검색할 지역명 검색 (예: 세종시 종촌동)')) #<FocusOut> 위젯선택 풀릴 시 (다른 곳 클릭 or tab)
 
 #검색버튼
 btn_search = tk.Button(search_frame, text="검색", padx=5, pady=5, command = btnsearchcmd)
 btn_search.pack(side="left", padx=5, fill="both")
+
 
 #엑셀 저장 버튼
 btn_exportexcel = tk.Button(search_frame, text="엑셀 저장",  padx=5, pady=5, command = btnexportexcel, state=tk.DISABLED)
@@ -482,7 +491,7 @@ list_frame.pack(side="top", fill="both")
 scrollbar = tk.Scrollbar(list_frame)
 scrollbar.pack(side="right", fill = "y")
 
-# TODO : 칼럼항목을 조절할 수 있음
+# DONE : 칼럼항목을 조절할 수 있음 -> 이건 내 기준으로 정의하기
 keys_view = list(table_column_list.keys())
 
 tableview = tkinter.ttk.Treeview(list_frame, columns=keys_view,\
