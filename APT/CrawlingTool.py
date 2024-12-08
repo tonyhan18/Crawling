@@ -269,11 +269,14 @@ def btnsearchcmd():
                     print(e)
                     
                 # 평단가
-                equilibriumPrice = round(prc / spc2P,2)            
+                equilibriumPrice = int(prc / spc2P)
                 
                 # 표에 삽입될 데이터
                 # TODO : 지역명 넣는 방법 필요한
                 # TODO : 층별로 데이터를 나누어서 받아오게 수정
+                # TODO : 호가가 자꾸만 뜀;;
+                # TODO : 테이블 데이터 지우거나 덧붙이거나 선택하는 방법 필요
+                # TODO : 사무실 추가 필요
                 if (curBisType is None and previousMonthlyRent == 0):
                     continue
                 tablelist = [
