@@ -1,0 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700&display=swap');
+
+/* 색상 및 디자인은 아래와 같이 변수로 만들어주는 것이 좋다. */
+$brand-green: #0e2d16;
+$brand-light-beige: #aba097;
+$brand-yellowish: #b1a285;
+$brand-purple: #93c;
+$brand-blue: #0d47a1;
+$brand-red: #c00;
+$brand-beige: #807060;
+$rgba-white-strong: rgba(255, 255, 255, 0.7);
+$rgba-black-light: rgba(0, 0, 0, 0.35);
+$brand-shadow: 0 16px 24px 2px rgba(0, 0, 0, 0.14), 0 6px 30px 5px rgba(0, 0, 0, 0.12), 0 8px 10px -5px rgba(0, 0, 0, 0.2);
+
+/* BackGround를 이렇게 조절하는게 좋음 */
+@mixin background($height: 60vh) {
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    height: $height;
+}
+
+/* overlay는 자주 사용하는 속성이기 때문에 기억해 두는 것이 좋다. */
+@mixin overlay($bgColor: $rgba-black-light) {
+    height: 100%;
+    width: 100%;
+    background-color: $bgColor;
+}
+
+/* 기본적인 태그들의 font 및 색상 설정은 여기에서 진행하면 된다. */
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+a,
+ul,
+li,
+button,
+input,
+textarea,
+select,
+span,
+small {
+    font-family: 'Roboto', sans-serif;
+}
+
+.section-content {
+    padding: 4rem 0;
+}
+
+/*
+요소의 상태 변화(예: 그림자 효과)가 0.5초 동안 지속되도록 설정.
+ease-in은 천천히 시작하고 빠르게 끝나는 애니메이션 효과를 의미.
+-webkit-transition은 웹킷 기반 브라우저(Chrome, Safari)에서도 동일한 효과를 적용하기 위한 설정.
+*/
+/*
+box-shadow 속성: 요소에 그림자 효과를 추가하는 속성.
+  0 16px 24px 2px rgba(0, 0, 0, 0.14)
+    0: 가로 방향 이동 없음
+    16px: 세로 방향으로 16px 이동
+    24px: 블러(흐림) 정도
+    2px: 그림자 확산 정도
+    rgba(0, 0, 0, 0.14): 검은색 그림자, 투명도 14%
+  0 6px 30px 5px rgba(0, 0, 0, 0.12)
+    또 다른 그림자 계층 추가, 더 부드러운 효과 연출
+  0 8px 10px -5px rgba(0, 0, 0, 0.2)
+    작은 그림자로 입체감 강화
+-webkit-box-shadow: 웹킷 기반 브라우저(Chrome, Safari)에서도 동일한 효과 적용.
+*/
+.shadow-box {
+    transition: 0.5s ease-in;
+
+    &:hover {
+        box-shadow: $brand-shadow;
+    }
+}

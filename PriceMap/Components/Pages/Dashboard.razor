@@ -1,0 +1,309 @@
+﻿@page "/dashboard"
+@using System.Diagnostics
+@*
+@inject NotificationService NotificationService
+@inject DialogService DialogService *@
+
+@inject IDatabase<GangnamguPopulation> DatabaseService
+@rendermode RenderMode.InteractiveServer
+
+<PageTitle>G.P.L | Dashboard</PageTitle>
+
+
+<RadzenText TextStyle="TextStyle.H4"> Dashboard </RadzenText>
+
+<div class="row my-1">
+    <div class="col-sm-12 col-lg-12">
+        <RadzenCard>
+            <RadzenLabel Text="● Welcome to Gangnamgu-Population Analysis Lab!" />
+        </RadzenCard>
+    </div>
+</div>
+<div class="row my-5">
+    <RadzenText TextStyle="TextStyle.H6">● Search Detail</RadzenText>
+
+    <RadzenStack Orientation="Orientation.Horizontal">
+        <RadzenDropDown Data="@administrativeAgency" @bind-Value="@value" />
+        <RadzenButton Click="@InsertRow">Search</RadzenButton>
+    </RadzenStack>
+</div>
+<div class="row my-5">
+    <div class="col-sm-12 col-lg-2">
+        <RadzenCard>
+            <RadzenStack>
+                <RadzenText TextStyle="TextStyle.H6">Total Population</RadzenText>
+                <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Center">@selectTotPopulation</RadzenText>
+                </RadzenStack>
+            </RadzenCard>
+        </div>
+        <div class="col-sm-12 col-lg-2">
+            <RadzenCard>
+                <RadzenStack>
+                    <RadzenText TextStyle="TextStyle.H6">Mail Population</RadzenText>
+                    <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Center">@selectMalePopulation</RadzenText>
+                </RadzenStack>
+            </RadzenCard>
+        </div>
+        <div class="col-sm-12 col-lg-2">
+            <RadzenCard>
+                <RadzenStack>
+                    <RadzenText TextStyle="TextStyle.H6">Femail Population</RadzenText>
+                    <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Center">@selectFemalePopulation</RadzenText>
+                </RadzenStack>
+            </RadzenCard>
+        </div>
+        <div class="col-sm-12 col-lg-2">
+            <RadzenCard>
+                <RadzenStack>
+                    <RadzenText TextStyle="TextStyle.H6">Sex Ratio</RadzenText>
+                    <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Center">@selectSexRatio</RadzenText>
+                </RadzenStack>
+            </RadzenCard>
+        </div>
+        <div class="col-sm-12 col-lg-2">
+            <RadzenCard>
+                <RadzenStack>
+                    <RadzenText TextStyle="TextStyle.H6">Number of Househole</RadzenText>
+                    <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Center">@selectNumberOfHousehole</RadzenText>
+                </RadzenStack>
+            </RadzenCard>
+        </div>
+        <div class="col-sm-12 col-lg-2">
+            <RadzenCard>
+                <RadzenStack>
+                    <RadzenText TextStyle="TextStyle.H6">Per Household</RadzenText>
+                    <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Center">@selectPerHousehole</RadzenText>
+                </RadzenStack>
+            </RadzenCard>
+        </div>
+    </div>
+<div class="row my-5">
+        <div class="col-sm-12 col-lg-8">
+            <RadzenText TextStyle="TextStyle.H6">● 행정동 인구수 Top10</RadzenText>
+            <RadzenCard>
+                <RadzenChart ColorScheme="@colorScheme">
+                    <RadzenLineSeries Data="@gangnamguPopulations?.OrderByDescending(c => c.TotalPopulation).Take(10)"
+                                      CategoryProperty="AdministrativeAgency"
+                                      ValueProperty="TotalPopulation"
+                                      Title="Total Popluation(Line)"
+                                      LineType="LineType.Dashed">
+                        <RadzenMarkers MarkerType="MarkerType.Circle" />
+                        <RadzenSeriesDataLabels Visible="@showDataLabels" />
+                    </RadzenLineSeries>
+                    <RadzenColumnSeries Data="@gangnamguPopulations?.OrderByDescending(c => c.TotalPopulation).Take(10)"
+                                        CategoryProperty="AdministrativeAgency"
+                                        ValueProperty="TotalPopulation"
+                                        Title="Total Popluation(Column)" />
+                    <RadzenLegend Position="LegendPosition.Bottom" />
+                    <RadzenColumnOptions Radius="5" Width="50" />
+                    <RadzenCategoryAxis Padding="5" />
+                    <RadzenValueAxis Min="@min" Max="@max" Step="10000">
+                        <RadzenGridLines Visible="true" />
+                        <RadzenAxisTitle Text="Total Population" />
+                    </RadzenValueAxis>
+                </RadzenChart>
+            </RadzenCard>
+        </div>
+        <div class="col-sm-12 col-lg-4">
+            <RadzenText TextStyle="TextStyle.H6">● 행정동 인구수 Top10</RadzenText>
+            <RadzenCard>
+                <RadzenChart ColorScheme="@colorScheme">
+                    <RadzenPieSeries Data="@gangnamguPopulations?.OrderByDescending(c => c.TotalPopulation).Take(10)"
+                                     CategoryProperty="AdministrativeAgency"
+                                     ValueProperty="TotalPopulation"
+                                     Title="Total Popluation(Pie)" />
+                </RadzenChart>
+            </RadzenCard>
+        </div>
+    </div>
+<div class="row my-5">
+        <div class="col-sm-12 col-lg-4">
+            <RadzenText TextStyle="TextStyle.H6">남자 인구수 Top5</RadzenText>
+            <RadzenCard>
+                <RadzenChart ColorScheme="@colorScheme">
+                    <RadzenDonutSeries Data="@gangnamguPopulations?.OrderByDescending(c => c.MalePopulation).Take(5)"
+                                       CategoryProperty="AdministrativeAgency"
+                                       ValueProperty="MalePopulation"
+                                       TotalAngle="180"
+                                       StartAngle="180">
+                        <ChildContent>
+                            <RadzenSeriesDataLabels Visible="@showDataLabels" />
+                        </ChildContent>
+                        <TitleTemplate>
+                            <div class="rz-donut-content">
+                                <div>Male Top 5</div>
+                                <div>for 2023</div>
+                            </div>
+                        </TitleTemplate>
+                    </RadzenDonutSeries>
+                </RadzenChart>
+            </RadzenCard>
+        </div>
+        <div class="col-sm-12 col-lg-4">
+            <RadzenText TextStyle="TextStyle.H6">여자 인구수 Top5</RadzenText>
+            <RadzenCard>
+                <RadzenChart ColorScheme="@colorScheme">
+                    <RadzenDonutSeries Data="@gangnamguPopulations?.OrderByDescending(c => c.FemalePopulation).Take(5)"
+                                       CategoryProperty="AdministrativeAgency"
+                                       ValueProperty="FemalePopulation"
+                                       TotalAngle="180"
+                                       StartAngle="180">
+                        <ChildContent>
+                            <RadzenSeriesDataLabels Visible="@showDataLabels" />
+                        </ChildContent>
+                        <TitleTemplate>
+                            <div class="rz-donut-content">
+                                <div>Female Top 5</div>
+                                <div>for 2023</div>
+                            </div>
+                        </TitleTemplate>
+                    </RadzenDonutSeries>
+                </RadzenChart>
+            </RadzenCard>
+        </div>
+        <div class="col-sm-12 col-lg-4">
+            <RadzenText TextStyle="TextStyle.H6">성비 인구수 Top5</RadzenText>
+            <RadzenCard>
+                <RadzenChart ColorScheme="@colorScheme">
+                    <RadzenDonutSeries Data="@gangnamguPopulations?.OrderByDescending(c => c.SexRatio).Take(5)"
+                                       CategoryProperty="AdministrativeAgency"
+                                       ValueProperty="SexRatio"
+                                       TotalAngle="180"
+                                       StartAngle="180">
+                        <ChildContent>
+                            <RadzenSeriesDataLabels Visible="@showDataLabels" />
+                        </ChildContent>
+                        <TitleTemplate>
+                            <div class="rz-donut-content">
+                                <div>SexRatio Top 5</div>
+                                <div>for 2023</div>
+                            </div>
+                        </TitleTemplate>
+                    </RadzenDonutSeries>
+                </RadzenChart>
+            </RadzenCard>
+        </div>
+    </div>
+<div class="row my-5">
+        <div class="col-sm-12 col-lg-12">
+            <RadzenText TextStyle="TextStyle.H6">● 인구통계 Top5 (계/남자/여자)</RadzenText>
+            <RadzenChart Style="height : 400px" ColorScheme="@colorScheme">
+                <RadzenStackedBarSeries Data="@gangnamguPopulations?.OrderByDescending(c => c.TotalPopulation).Take(5)"
+                                        CategoryProperty="AdministrativeAgency"
+                                        ValueProperty="TotalPopulation"
+                                        Title="인구수(계)">
+                    <RadzenSeriesDataLabels Visible="@showDataLabels" />
+                </RadzenStackedBarSeries>
+                <RadzenStackedBarSeries Data="@gangnamguPopulations?.OrderByDescending(c => c.TotalPopulation).Take(5)"
+                                        CategoryProperty="AdministrativeAgency"
+                                        ValueProperty="MalePopulation"
+                                        Title="남자인구수(계)">
+                    <RadzenSeriesDataLabels Visible="@showDataLabels" />
+                </RadzenStackedBarSeries>
+                <RadzenStackedBarSeries Data="@gangnamguPopulations?.OrderByDescending(c => c.TotalPopulation).Take(5)"
+                                        CategoryProperty="AdministrativeAgency"
+                                        ValueProperty="FemalePopulation"
+                                        Title="여자인구수(계)">
+                    <RadzenSeriesDataLabels Visible="@showDataLabels" />
+                </RadzenStackedBarSeries>
+                <RadzenValueAxis>
+                    <RadzenGridLines Visible="true" />
+                    <RadzenAxisTitle Text="인구수" />
+                </RadzenValueAxis>
+                <RadzenBarOptions Radius="5" Height="40" />
+            </RadzenChart>
+        </div>
+    </div>
+<div class="row my-5">
+        <RadzenText TextStyle="TextStyle.H6">● Your Courses</RadzenText>
+    </div>
+<div class="row my-5">
+        <div class="col-sm-12 col-lg-4">
+            <RadzenCard>
+                <RadzenText TextStyle="TextStyle.H6">Do you want to learn about WPF basic ?</RadzenText>
+                <RadzenButton Style="width:100%" Click="@ClickWpf">Click to Link!</RadzenButton>
+            </RadzenCard>
+        </div>
+        <div class="col-sm-12 col-lg-4">
+            <RadzenCard>
+                <RadzenText TextStyle="TextStyle.H6">How about Blazor WebAssembly ?</RadzenText>
+                <RadzenButton Style="width:100%" Click="@ClickBlazorWebAssembly">Click to Link!</RadzenButton>
+            </RadzenCard>
+        </div>
+        <div class="col-sm-12 col-lg-4">
+            <RadzenCard>
+                <RadzenText TextStyle="TextStyle.H6">Blazor Server also here !</RadzenText>
+                <RadzenButton Style="width:100%" Click="@ClickBlazorServer">Click to Link!</RadzenButton>
+            </RadzenCard>
+        </div>
+    </div>
+
+@code {
+    private string value = string.Empty;
+    private string selectTotPopulation = string.Empty;
+    private string selectMalePopulation = string.Empty;
+    private string selectFemalePopulation = string.Empty;
+    private string selectSexRatio = string.Empty;
+    private string selectNumberOfHousehole = string.Empty;
+    private string selectPerHousehole = string.Empty;
+
+    private int min = 0;
+
+    private int max = 80000;
+
+    private bool isContentLoaded = false;
+
+    private RadzenGoogleMap? map = new RadzenGoogleMap();
+
+    private bool showDataLabels = true;
+
+    private IEnumerable<ColorScheme> colorSchemes = Enum.GetValues(typeof(ColorScheme)).Cast<ColorScheme>();
+
+    private ColorScheme colorScheme = ColorScheme.Palette;
+
+    private IEnumerable<GangnamguPopulation>? gangnamguPopulations = new List<GangnamguPopulation>();
+
+    private IEnumerable<string>? administrativeAgency = new List<string>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        this.gangnamguPopulations = await DatabaseService.GetAsync();
+
+        this.administrativeAgency = this.gangnamguPopulations.Select(c => c.AdministrativeAgency).ToList();
+
+        this.isContentLoaded = true;
+    }
+
+    private void InsertRow()
+    {
+        var data = this.gangnamguPopulations.Where(c => c.AdministrativeAgency == this.value).FirstOrDefault();
+
+        this.selectTotPopulation = data.TotalPopulation.ToString();
+        this.selectMalePopulation = data.MalePopulation.ToString();
+        this.selectFemalePopulation = data.FemalePopulation.ToString();
+        this.selectNumberOfHousehole = data.NumberOfHouseholds.ToString();
+        this.selectSexRatio = data.SexRatio.ToString();
+        this.selectPerHousehole = data.NumberOfPeoplePerHousehold.ToString();
+    }
+
+    private void ClickWpf()
+    {
+        string url = "https://inf.run/ptAYH";
+
+        Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+    }
+
+    private void ClickBlazorWebAssembly()
+    {
+        string url = "https://inf.run/tptBE";
+
+        Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+    }
+
+    private void ClickBlazorServer()
+    {
+
+    }
+}

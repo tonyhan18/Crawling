@@ -1,0 +1,59 @@
+﻿@page "/DataQuickGridTest"
+@inject IDatabase<GangnamguPopulation> DatabaseService
+
+<h3>Data</h3>
+
+
+@if (items == null)
+{
+    <p><em>Loading...</em></p>
+}else
+{
+    <div class="grid">
+        <QuickGrid Items="@items" Pagination="@pagination">
+            <TemplateColumn Title="Rank" SortBy="@rankSort" Align="Align.Center" InitialSortDirection="SortDirection.Ascending" IsDefaultSortColumn="true" />
+            <PropertyColumn Property="@(c => c.AdministrativeAgency)" Sortable="true" Class="administrative-name">
+                <ColumnOptions>
+                    <div class="search-box">
+                        <input type="search" autofocus @bind="nameFilter" @bind:event="oninput" placeholder="Administrative name..." />
+                    </div>
+                </ColumnOptions>
+            </PropertyColumn>            
+            <PropertyColumn Property="@(p => p.TotalPopulation)" Sortable="true" />
+            <PropertyColumn Property="@(p => p.MalePopulation)" Sortable="true" />
+            <PropertyColumn Property="@(p => p.FemalePopulation)" Sortable="true" />
+            <PropertyColumn Property="@(p => p.SexRatio)" Sortable="true" />
+            <PropertyColumn Property="@(p => p.NumberOfHouseholds)" Sortable="true" />
+            <PropertyColumn Property="@(p => p.NumberOfPeoplePerHousehold)" Sortable="true" />
+            <TemplateColumn Title="Actions">
+                <button @onclick="@(() => Update(context))">Update</button>
+                <button @onclick="@(() => Delete(context))">Delete</button>
+            </TemplateColumn>
+
+        </QuickGrid>
+    </div>    
+}
+
+<Paginator State="@pagination" />
+
+@code {
+    string message = string.Empty;
+    string nameFilter = string.Empty;
+
+    IQueryable<GangnamguPopulation> items;
+    IQueryable<GangnamguPopulation>? FilteredItems => items?.Where(x => x.AdministrativeAgency.Contains(nameFilter, StringComparison.CurrentCultureIgnoreCase));
+    
+    PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+    GridSort<GangnamguPopulation> rankSort = GridSort<GangnamguPopulation>
+        .ByDescending(x => x.TotalPopulation)
+        .ThenDescending(x => x.SexRatio);
+
+    protected override async Task OnInitializedAsync()
+    {
+        items = (await DatabaseService.GetAsync()).AsQueryable();
+    }
+
+    void Update(GangnamguPopulation p) => message = $"You want to update {p.AdministrativeAgency}";
+
+    void Delete(GangnamguPopulation p) => message = $"You want to delete {p.AdministrativeAgency}";
+}
